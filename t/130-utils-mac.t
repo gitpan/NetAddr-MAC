@@ -1,6 +1,5 @@
-#!/usr/bin/perl -w
-
 use strict;
+use warnings;
 
 use Symbol qw( delete_package );
 use Test::More tests => 6;
@@ -15,6 +14,7 @@ my @all = qw(
           mac_as_basic     mac_as_sun
           mac_as_microsoft mac_as_cisco
           mac_as_bpr       mac_as_ieee
+          mac_as_ipv6_suffix
 
 );
 
@@ -28,6 +28,7 @@ my @normals = qw(
           mac_as_basic     mac_as_sun
           mac_as_microsoft mac_as_cisco
           mac_as_bpr       mac_as_ieee
+          mac_as_ipv6_suffix
 );
 
 can_ok('NetAddr::MAC', @all, @properties, @normals);

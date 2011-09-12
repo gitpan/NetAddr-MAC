@@ -14,7 +14,7 @@ use constant EUI64LENGTHDEC => 8;
 
 use base qw( Exporter );
 use vars qw( $VERSION %EXPORT_TAGS @EXPORT_OK );
-$VERSION = (qw$Revision: 0.71 $)[1];
+$VERSION = (qw$Revision: 0.72 $)[1];
 
 %EXPORT_TAGS = (
     all => [
@@ -25,6 +25,7 @@ $VERSION = (qw$Revision: 0.71 $)[1];
           mac_as_basic     mac_as_sun
           mac_as_microsoft mac_as_cisco
           mac_as_bpr       mac_as_ieee
+          mac_as_ipv6_suffix
         )
     ],
     properties => [
@@ -39,6 +40,7 @@ $VERSION = (qw$Revision: 0.71 $)[1];
           mac_as_basic     mac_as_sun
           mac_as_microsoft mac_as_cisco
           mac_as_bpr       mac_as_ieee
+          mac_as_ipv6_suffix
         )
     ],
 );
@@ -52,7 +54,7 @@ OIE::Utils::MAC - Handles hardware MAC Addresses (EUI-48 and EUI-64)
 =head1 SYNOPSIS
 
     use OIE::Utils::MAC;
-    
+
     my $mac = OIE::Utils::MAC->new( '00:11:22:aa:bb:cc' );
     my $mac = OIE::Utils::MAC->new( mac => '0011.22AA.BBCC' );
 
@@ -181,10 +183,10 @@ sub _mac_to_integers {
 
     # 00:19:e3:01:0e:72
     if ( @parts == EUI48LENGTHDEC || @parts == EUI64LENGTHDEC )
-    {        
+    {
         return [ map { hex } @parts ];
     }
-    
+
     # 0019:e301:0e72
     if ( @parts == EUI48LENGTHDEC / 2 || @parts == EUI64LENGTHDEC / 2 )
     {
@@ -343,6 +345,37 @@ sub as_ieee {
     return join( q{-}, map { sprintf( '%02x', $_ ) } @{ $self->{mac} } );
 }
 
+=head2 as_ipv6_suffix
+
+returns the EUI-64 address in the format used for an IPv6 autoconf address suffix
+
+=cut
+
+sub as_ipv6_suffix {
+
+    my $self = shift;
+    my @tmpmac;
+
+    # be slightly evil here, so that hashrefs and objects work
+    if (is_eui48($self)) {
+       # save this for later
+       @tmpmac = @{ $self->{mac} };
+
+       to_eui64($self);
+
+    }
+
+    my @suffix = (
+        @{ $self->{mac} }[0] ^ 0x02,
+        @{ $self->{mac} }[1..7]
+    );
+
+    # restore the eui48 if needed
+    $self->{mac} = \@tmpmac if @tmpmac;
+
+    return join( q{:}, map { my $i = $_; $i *= 2; sprintf( '%02x%02x', $suffix[$i], $suffix[$i + 1]) } 0 .. 3 );
+}
+
 =head2 as_microsoft
 
 returns the mac address normalized as a hexidecimal string that is 0 padded and with B<:> delimiting every octet
@@ -385,6 +418,52 @@ sub as_tokenring {
 
     # my $self = shift;
     # return join( q{-}, map { sprintf( '%01x', $_ ) } @{ $self->{mac} } );
+}
+
+=head2 to_eui48
+
+converts to EUI-48 (if the eui-64 was derived from eui-48)
+
+=cut
+
+sub to_eui48 {
+
+    my $self = shift;
+
+    # be slightly evil here, so that hashrefs and objects work
+    if (is_eui64($self)) {
+        if (@{ $self->{mac} }[3] == 0xff and (@{ $self->{mac} }[4] == 0xff or @{ $self->{mac} }[4] == 0xfe)) {
+            # convert to eui-48
+            $self->{mac} = [ @{ $self->{mac} }[0..2,5..7] ];
+        } else {
+            croak 'eui-64 address is not derived from an eui-48 address';
+        }
+    }
+
+    return 1
+}
+
+=head2 to_eui64
+
+converts to EUI-64
+
+=cut
+
+sub to_eui64 {
+
+    my $self = shift;
+
+    # be slightly evil here so that hashrefs and objects work
+    if (is_eui48($self)) {
+        # convert to eui-64
+        $self->{mac} = [
+            @{ $self->{mac} }[0..2],
+            0xff, 0xfe,
+            @{ $self->{mac} }[3..5]
+        ];
+    }
+
+    return 1
 }
 
 =head1 STAND ALONE PROPERTY FUNCTIONS
@@ -515,7 +594,7 @@ sub mac_as_basic {
 =head2 mac_as_bpr($mac)
 
 returns the mac address in $mac normalized as a hexidecimal string that is 0 padded, with B<:> delimiting and
-B<1,length> leading. I<length> is the number of hex pairs (6 for EUI48) 
+B<1,length> leading. I<length> is the number of hex pairs (6 for EUI48)
 
  1,6,00:11:22:aa:bb:cc
 
@@ -570,6 +649,25 @@ sub mac_as_ieee {
     croak 'argument must be a string' if ref $mac;
 
     return as_ieee( { mac => _mac_to_integers($mac) } )
+
+}
+
+=head2 mac_as_ipv6_suffix($mac)
+
+returns the mac address in $mac in the format used for an IPv6 autoconf address suffix
+
+will convert from eui48 or eui64 if needed
+
+=cut
+
+sub mac_as_ipv6_suffix {
+
+    my $mac = shift;
+    croak 'please use as_ipv6_suffix'
+      if ref $mac eq __PACKAGE__;
+    croak 'argument must be a string' if ref $mac;
+
+    return as_ipv6_suffix( { mac => _mac_to_integers($mac) } )
 
 }
 
@@ -632,16 +730,29 @@ sub mac_as_tokenring {
 
 =head1 CREDITS
 
-Stolen lots of ideas and some pod content from L<Device::MAC> and L<Net::MAC> 
+Myself, Dean Hamstead C<< <dean.hamstead@fragfest.com.au> >>
+
+Stolen lots of ideas and some pod content from L<Device::MAC> and L<Net::MAC>.
+
+Various contributers thanks to GitHub
+
+=head1 DEVELOPMENT
+
+Please fork this and send me pull requests! L<< https://github.com/djzort/Perl-NetAddr-MAC >>
 
 =head1 TODO
 
  - tests!
  - as_tokenring - need to find a nifty way to reverse the bit order
 
-=head1 AUTHOR
+=head1 COPYRIGHT
 
-Dean Hamstead C<< <dean.hamstead@optusnet.com.au> >>
+Copyright (c) 2011, Dean Hamstead
+
+=head1 LICENSE
+
+This library is free software. You can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut
 
