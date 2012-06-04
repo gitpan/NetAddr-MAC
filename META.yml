@@ -5,18 +5,14 @@ author:
 build_requires:
   Test::Trap: 0
 configure_requires:
-  Module::Build: 0.38
-dynamic_config: 1
-generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.120921'
+  ExtUtils::MakeMaker: 6.30
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.300016, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: NetAddr-MAC
-provides:
-  NetAddr::MAC:
-    file: lib/NetAddr/MAC.pm
-    version: 0.76
 requires:
   Carp: 0
   Exporter: 0
@@ -27,6 +23,4 @@ requires:
   strict: 0
   vars: 0
   warnings: 0
-resources:
-  license: http://dev.perl.org/licenses/
-version: 0.76
+version: 0.77

@@ -3,8 +3,8 @@
    "author" : [
       "Dean Hamstead <dean@fragfest.com.au>"
    ],
-   "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921",
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 4.300016, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -21,7 +21,7 @@
       },
       "configure" : {
          "requires" : {
-            "Module::Build" : "0.38"
+            "ExtUtils::MakeMaker" : "6.30"
          }
       },
       "runtime" : {
@@ -38,17 +38,7 @@
          }
       }
    },
-   "provides" : {
-      "NetAddr::MAC" : {
-         "file" : "lib/NetAddr/MAC.pm",
-         "version" : "0.76"
-      }
-   },
    "release_status" : "stable",
-   "resources" : {
-      "license" : [
-         "http://dev.perl.org/licenses/"
-      ]
-   },
-   "version" : "0.76"
+   "version" : "0.77"
 }
+
