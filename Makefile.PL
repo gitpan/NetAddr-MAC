@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker 6.30;
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Handles hardware MAC Addresses (EUI-48 and EUI-64)",
-  "AUTHOR" => "Dean Hamstead <dean\@fragfest.com.au>",
+  "AUTHOR" => "Dean Hamstead <dean\@bytefoundry.com.au>",
   "BUILD_REQUIRES" => {
     "Test::Trap" => 0
   },
@@ -32,7 +32,7 @@ my %WriteMakefileArgs = (
     "warnings" => 0
   },
   "TEST_REQUIRES" => {},
-  "VERSION" => "0.79",
+  "VERSION" => "0.8",
   "test" => {
     "TESTS" => "t/*.t"
   }
