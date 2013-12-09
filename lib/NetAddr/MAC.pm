@@ -38,7 +38,7 @@ use constant ETHER2TOKEN => (
 
 use base qw( Exporter );
 use vars qw( $VERSION %EXPORT_TAGS @EXPORT_OK );
-$VERSION = (qw$Revision: 0.81 $)[1];
+$VERSION = (qw$Revision: 0.82 $)[1];
 
 %EXPORT_TAGS = (
     all => [
@@ -252,6 +252,12 @@ sub new {
             return;
         }
 
+        # check none of the list elements are empty
+        if (first { not defined $_ or 0 == length $_} @{$self->{mac}}) {
+            croak "Invalid MAC format '$self->{original}'\n" if $self->{_die};
+            return;
+        }
+
         return 1;
 
     }
@@ -308,6 +314,12 @@ sub new {
             # 0019:e301:0e72
             if ( @parts == EUI48LENGTHDEC / 2 || @parts == EUI64LENGTHDEC / 2 )
             {
+                # it would be nice to accept no leading 0's but this gives
+                # problems detecting broken formatted macs.
+                # cisco doesnt drop leading zeros so lets go for the least
+                # edgey of the edge cases.
+                last if (first {length $_ < 4} @parts);
+
                 return [
                     map {
                         m{^ ([a-f0-9]{2}) ([a-f0-9]{2}) $}ix

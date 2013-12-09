@@ -14,6 +14,7 @@ t/00.load.t
 t/130-utils-mac.t
 t/131-utils-mac-properties.t
 t/132-utils-mac-normals.t
+t/150-misc-bad-formats.t
 t/author-critic.t
 t/author-test-eol.t
 t/release-distmeta.t
