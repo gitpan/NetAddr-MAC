@@ -1,4 +1,5 @@
 #!/bin/false
+# ABSTRACT: MAC address functions and object
 
 package NetAddr::MAC;
 use strict;
@@ -73,6 +74,7 @@ $VERSION = (qw$Revision: 0.82 $)[1];
 
 Exporter::export_ok_tags( keys %EXPORT_TAGS );
 
+=encoding utf8
 =head1 NAME
 
 NetAddr::MAC - Handles hardware MAC Addresses (EUI-48 and EUI-64)
@@ -128,7 +130,6 @@ NetAddr::MAC - Handles hardware MAC Addresses (EUI-48 and EUI-64)
     print 'Single Dash Format: ', mac_as_singledash($mac),"\n";
     print 'Sun Format: ',  mac_as_sun($mac),"\n";
     print 'Token Ring Format: ',mac_as_tokenring($mac),"\n";
-
 
 =head1 DESCRIPTION
 
@@ -210,6 +211,9 @@ sub new {
     my ( $p, @a ) = @_;
     my $c = ref($p) || $p;
     my $self = bless {}, $c;
+
+	# clear the errstr, see also RT96045
+	$NetAddr::MAC::errstr = undef;
 
     unless (@a) {
         my $e = q|Please provide a mac address|;
@@ -363,7 +367,16 @@ sub original {
 
 =head2 errstr
 
-returns the error (if one occured)
+returns the error (if one occured).
+
+This is intended for use with the object. Its not exported at all.
+
+Note: this method is used once the NetAddr::MAC object is successfully
+created. For now the to_eui48 method is the only method that will
+return an error once the object is created.
+
+When creating objects, you will need to catch errors with either the
+I<or> function, or the I<eval> way.
 
 =cut
 
@@ -613,6 +626,9 @@ sub as_tokenring {
 
 converts to EUI-48 (if the eui-64 was derived from eui-48)
 
+this function will fail if the mac was not derived from eui-48.
+you will need to catch it and inspect the error message.
+
 =cut
 
 sub to_eui48 {
@@ -632,8 +648,8 @@ sub to_eui48 {
         else {
             my $e = 'eui-64 address is not derived from an eui-48 address';
             croak "$e\n" if $self->{_die};
-            $NetAddr::MAC::errstr = $e;
-            return;
+  		    $self->{_errstr} = $e;
+  		    return
         }
     }
 
@@ -655,8 +671,10 @@ sub to_eui64 {
 
         # convert to eui-64
         $self->{mac} = [
-            @{ $self->{mac} }[ 0 .. 2 ], 0xff,
-            0xfe,                        @{ $self->{mac} }[ 3 .. 5 ]
+            @{ $self->{mac} }[ 0 .. 2 ],
+            0xff,
+            0xfe,
+            @{ $self->{mac} }[ 3 .. 5 ]
         ];
 
     }
@@ -1044,18 +1062,18 @@ sub mac_as_tokenring {
 
 =head1 ERROR HANDLING
 
-Prior to 0.8 every error resulted in a die (croak) which need to be caught.
+Prior to 0.8 every error resulted in a die (croak) which needed to be caught.
 As I have used this module more, having to catch them all the time is tiresome.
-So from 0.8 onwards, errors result in an undef and something being set.
+So from 0.8 onwards, errors result in an I<undef> and something being set.
 
-For objects, this something is accessible via B<<$self->errstr>> otherwise
+For objects, this something is accessible via B<$self-E<gt>errstr> otherwise
 ther error is in B<$NetAddr::MAC::errstr>;
 
 If you would like to have die (croak) instead, you can either set the global
 B<$NetAddr::MAC::die_on_error> or set the B<die_on_error> option when creating
 an object. When creating objects, the provided option takes priority over the
 global. So if you set the global, then all objects will die - unless you
-specifcy otherwise.
+specify otherwise.
 
 =head2 Global examples
 
@@ -1115,6 +1133,10 @@ Or do it globally
       # something bad happened, so handle it
 
   }
+
+=head1 VERSION
+
+ 0.82
 
 =head1 CREDITS
 

@@ -1,5 +1,11 @@
 NetAddr::MAC - A MAC address object
 
+0.82_01    2014-06-03
+        - Some typos in the pod of MAC.pm
+        - Fixing RT96045 (https://rt.cpan.org/Public/Bug/Display.html?id=96045) reported by Oliver Gorwits.
+        - Closed out RT79915, no changes here but bugs caused by yucky overrides to core functions
+        - Tweaks to the README file and added the # ABSTRACT: line
+
 0.82    2013-12-09
         - Tests for bad mac addresses from Oliver Gorwits (http://gorwits.me.uk/)
         - For Cisco format 1111.2222.3333 - we no longer support dropping leading zeros. This was a trade off to better detect broken mac's. Cisco doesnt drop them anyway so its, IMO, the most sensible compromise.
@@ -19,5 +25,5 @@ NetAddr::MAC - A MAC address object
         - Fixes for RT79915
 
 0.77    2012-06-04
-	- Added changelog
-	- Changed to dzil
+        - Added changelog
+        - Changed to dzil
