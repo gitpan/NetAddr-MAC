@@ -13,7 +13,7 @@ on 'build' => sub {
 };
 
 on 'configure' => sub {
-  requires "ExtUtils::MakeMaker" => "6.30";
+  requires "ExtUtils::MakeMaker" => "0";
 };
 
 on 'develop' => sub {
